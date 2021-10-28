@@ -69,6 +69,4 @@ def get_train_test_split(root_path, test_frac=.2, seed=1984, chunk_len=20480):
     train_paths = LibriSpeechDataset(train_paths)
     test_paths = LibriSpeechDataset(test_paths)
 
-    print(test_paths)
-
     return (train_paths, train_spk), (test_paths, test_spk)

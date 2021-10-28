@@ -19,6 +19,11 @@ import os
 import copy
 import sys
 
+
+# 10 speakers, 10 samples per session
+# Gives seg-fault:
+# py test.py ./models/1635417953561
+
 test_dev = opt["test_dev"]
 batch_size = opt["test_batch_size"]
 num_workers = opt["num_workers"]
@@ -96,10 +101,16 @@ if __name__ == '__main__':
     tsne_spk = set(np.random.permutation(list(set(lr_target)))
                    [:int(tsne_spk_frac*len(set(lr_target)))])
 
-    print(f"Computing t-SNE for {len(tsne_spk)} speakers.")
+    print("tsne_spk", tsne_spk)
+
+    print("Computing t-SNE for", len(tsne_spk), "speakers.")
 
     tsne_ii = np.array([i for i, j in enumerate(lr_target) if j in tsne_spk])
 
+    print("tsne_ii:", tsne_ii.shape)
+    print("c_data:", c_data.shape)
+    print("c_data[tsne_ii]:", c_data[tsne_ii].shape)
+    # Segmentation fault här
     c_embedding = c_tsne.fit_transform(c_data[tsne_ii])
     e_embedding = e_tsne.fit_transform(e_data[tsne_ii])
     tsne_targ = lr_target[tsne_ii]

@@ -1,11 +1,17 @@
-from CPCLibriSpeech.model_management import build_models
-from CPCLibriSpeech.data_management import get_data
-import torch
-from tqdm import tqdm
-import json
-import time
-from options import opt
 import os
+from options import opt
+import time
+import json
+from tqdm import tqdm
+import torch
+from CPCLibriSpeech.data_management import get_data
+from CPCLibriSpeech.model_management import build_models
+
+# To run
+# $ ./setup.sh
+# $ python train.py
+# $ python3 test.py ./models/{model_timestamp}
+# where {model_timestamp} is the name of the last/most recent folder created during training in models/
 
 dev = opt["dev"]
 lr_step_rate = opt["lr_step_rate"]
@@ -27,7 +33,8 @@ if __name__ == '__main__':
     model = build_models.CPC_LibriSpeech_Encoder()
     DP_model = torch.nn.DataParallel(model, dev_list, dev).to(dev)
 
-    (train_p, train_s), (test_p, test_s) = get_data.get_train_test_split(root_data_path)
+    (train_p, train_s), (test_p, test_s) = get_data.get_train_test_split(
+        root_data_path, test_frac=0.4)
 
     json.dump(train_s, open(od + "/train_speakers.txt", "w"))
     json.dump(test_s, open(od + "/test_speakers.txt", "w"))
@@ -37,13 +44,16 @@ if __name__ == '__main__':
     test_dataset = torch.utils.data.DataLoader(
         test_p, batch_size=batch_size, num_workers=num_workers)
 
+    print("Train:", len(train_dataset), "samples")
+    print("Test:", len(test_dataset), "samples")
+
     optimizer = torch.optim.Adam(model.parameters(), lr=init_learning_rate)
     lr_step = torch.optim.lr_scheduler.MultiplicativeLR(
         optimizer, lambda epoch: lr_step_factor)
 
     best_loss = None
     for epoch in range(n_epochs):
-        print("Epoch " + str(epoch))
+        print("Epoch " + str(epoch+1))
         for phase in ["train", "test"]:
             print(phase)
             if phase == "train":
