@@ -6,6 +6,7 @@ from tqdm import tqdm
 import torch
 from CPCLibriSpeech.data_management import get_data
 from CPCLibriSpeech.model_management import build_models
+import gc
 
 # To run
 # $ ./setup.sh
@@ -31,7 +32,8 @@ if __name__ == '__main__':
     os.mkdir(od)
 
     model = build_models.CPC_LibriSpeech_Encoder()
-    DP_model = torch.nn.DataParallel(model, dev_list, dev).to(dev)
+    
+    DP_model = torch.nn.DataParallel(model, dev_list, dev).cuda()
 
     (train_p, train_s), (test_p, test_s) = get_data.get_train_test_split(
         root_data_path, test_frac=0.4)
@@ -53,7 +55,9 @@ if __name__ == '__main__':
 
     best_loss = None
     for epoch in range(n_epochs):
+
         print("Epoch " + str(epoch+1))
+        torch.cuda.empty_cache()
         for phase in ["train", "test"]:
             print(phase)
             if phase == "train":
@@ -75,7 +79,10 @@ if __name__ == '__main__':
                     loss.backward()
                     optimizer.step()
 
-                running_loss += loss.item()
+                running_loss += loss.detach().item()
+                del loss
+                del B
+                
 
             running_loss /= len(dataset)
 
@@ -85,5 +92,12 @@ if __name__ == '__main__':
 
         if (epoch+1) % lr_step_rate == 0:
             lr_step.step()
+
+        torch.cuda.empty_cache()
+        
+
+        gc.collect()
+
+        
 
     torch.save(model.state_dict(), od + "/model_params_final")
