@@ -18,6 +18,7 @@ from options import opt
 import os
 import copy
 import sys
+import random
 
 
 # 10 speakers, 10 samples per session
@@ -39,7 +40,12 @@ if __name__ == '__main__':
         model_dir + "/best_model_params", map_location="cpu"))
     model = model.to(test_dev)
 
+    
     test_speakers = json.load(open(model_dir + "/test_speakers.txt"))
+
+    debug_fraction = 0.1
+    random.sample(test_speakers,len(test_speakers*debug_fraction))
+
     test_p = [s for S in test_speakers for s in glob.glob(S + "**/*.flac")]
 
     dataset = get_data.LibriSpeechDataset(test_p)
