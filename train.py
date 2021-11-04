@@ -34,7 +34,8 @@ if __name__ == '__main__':
     DP_model = torch.nn.DataParallel(model, dev_list, dev).to(dev)
 
     (train_p, train_s), (test_p, test_s) = get_data.get_train_test_split(
-        root_data_path, test_frac=0.4)
+        root_data_path, test_frac=0.5)
+
 
     json.dump(train_s, open(od + "/train_speakers.txt", "w"))
     json.dump(test_s, open(od + "/test_speakers.txt", "w"))
