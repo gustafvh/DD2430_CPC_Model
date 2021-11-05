@@ -7,6 +7,7 @@ import torch
 from CPCLibriSpeech.data_management import get_data
 from CPCLibriSpeech.model_management import build_models
 import gc
+import load_mne 
 
 # To run
 # $ ./setup.sh
@@ -23,6 +24,8 @@ num_workers = opt["num_workers"]
 init_learning_rate = opt["init_learning_rate"]
 lr_step_factor = opt["lr_step_factor"]
 n_epochs = opt["n_epochs"]
+reuse_datasplit = opt["reuse_datasplit"]
+path_to_best_mode = opt["path_to_best_mode"]
 
 
 if __name__ == '__main__':
@@ -35,16 +38,33 @@ if __name__ == '__main__':
     
     DP_model = torch.nn.DataParallel(model, dev_list, dev).cuda()
 
-    (train_p, train_s), (test_p, test_s) = get_data.get_train_test_split(
-        root_data_path, test_frac=0.4)
+    
+    train_s = []
+    test_s = []
+    train_p = []
+    test_p = []
+    
 
-    json.dump(train_s, open(od + "/train_speakers.txt", "w"))
-    json.dump(test_s, open(od + "/test_speakers.txt", "w"))
+    if reuse_datasplit == False:
+        (train_p, train_s), (test_p, test_s) = get_data.get_train_test_split(
+            root_data_path, test_frac=0.4)
 
+        json.dump(train_s, open(od + "/train_speakers.txt", "w"))
+        json.dump(test_s, open(od + "/test_speakers.txt", "w"))
+    else: 
+        train_s = json.load(open(path_to_best_mode + "/train_speakers.txt"))
+        test_s = json.load(open(path_to_best_mode + "/test_speakers.txt"))
+        train_p, test_p  =  get_data.load_dataset(train_s, test_s)
+
+    '''
     train_dataset = torch.utils.data.DataLoader(
         train_p, batch_size=batch_size, num_workers=num_workers, shuffle=True)
     test_dataset = torch.utils.data.DataLoader(
         test_p, batch_size=batch_size, num_workers=num_workers)
+
+'''
+    train_dataset, test_dataset = load_mne.get_dataloader_MNE(batch_size)
+    
 
     print("Train:", len(train_dataset), "samples")
     print("Test:", len(test_dataset), "samples")
@@ -68,7 +88,7 @@ if __name__ == '__main__':
                 DP_model.eval()
 
             running_loss = 0
-            for B, spk, rec, sess, chk in tqdm(dataset):
+            for B, spk in tqdm(dataset):
                 B.to(dev)
 
                 loss = torch.stack(DP_model(B))
