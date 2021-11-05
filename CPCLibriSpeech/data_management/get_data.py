@@ -70,3 +70,14 @@ def get_train_test_split(root_path, test_frac=.2, seed=1984, chunk_len=20480):
     test_paths = LibriSpeechDataset(test_paths)
 
     return (train_paths, train_spk), (test_paths, test_spk)
+
+
+def load_dataset(train_spk, test_spk):
+    
+    train_paths = [s for i in train_spk for s in glob.glob(i + "**/*.flac")]
+    test_paths = [s for i in test_spk for s in glob.glob(i + "**/*.flac")]
+
+    train_paths = LibriSpeechDataset(train_paths)
+    test_paths = LibriSpeechDataset(test_paths)
+
+    return train_paths, test_paths

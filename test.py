@@ -48,6 +48,8 @@ if __name__ == '__main__':
     test_p = [s for S in test_speakers for s in glob.glob(S + "**/*.flac")]
 
     dataset = get_data.LibriSpeechDataset(test_p)
+
+    # call the new dataloader her
     test_dataset = torch.utils.data.DataLoader(
         dataset, batch_size=batch_size, num_workers=num_workers, shuffle=True, drop_last=False)
 
