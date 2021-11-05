@@ -29,7 +29,7 @@ test_dev = opt["test_dev"]
 batch_size = opt["test_batch_size"]
 num_workers = opt["num_workers"]
 tsne_spk_frac = opt["tsne_spk_frac"]
-
+debug_fraction = opt["debug_fraction"]
 
 if __name__ == '__main__':
 
@@ -42,8 +42,7 @@ if __name__ == '__main__':
 
     
     test_speakers = json.load(open(model_dir + "/test_speakers.txt"))
-
-    #debug_fraction = 0.1
+    
     #test_speakers = random.sample(test_speakers,int(len(test_speakers)*debug_fraction))
 
     test_p = [s for S in test_speakers for s in glob.glob(S + "**/*.flac")]
