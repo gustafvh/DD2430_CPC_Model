@@ -81,7 +81,7 @@ if __name__ == '__main__':
         pkl.dump(m_data, open(model_dir + "m_data.pkl", "wb"))
 
     data_len = len(c_data)
-    test_frac = int(.1*data_len)
+    test_frac = int(.01*data_len)
 
     c_data = np.array(c_data)
     e_data = np.array(e_data)

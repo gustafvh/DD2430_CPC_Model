@@ -12,4 +12,6 @@ opt = {
     "test_dev":"cuda:0",
     "test_batch_size":32,
     "tsne_spk_frac": 0.1,
+    "reuse_datasplit": False,
+    "path_to_best_mode": "./models/1636017087665"
 }

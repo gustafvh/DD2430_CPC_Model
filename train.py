@@ -7,7 +7,7 @@ import torch
 from CPCLibriSpeech.data_management import get_data
 from CPCLibriSpeech.model_management import build_models
 import gc
-import load_mne 
+import load_mne
 
 # To run
 # $ ./setup.sh
@@ -35,36 +35,32 @@ if __name__ == '__main__':
     os.mkdir(od)
 
     model = build_models.CPC_LibriSpeech_Encoder()
-    
+
     DP_model = torch.nn.DataParallel(model, dev_list, dev).cuda()
 
-    
     train_s = []
     test_s = []
     train_p = []
     test_p = []
-    
 
-    if reuse_datasplit == False:
+    if reuse_datasplit == True:
+
+        train_s = json.load(open(path_to_best_mode + "/train_speakers.txt"))
+        test_s = json.load(open(path_to_best_mode + "/test_speakers.txt"))
+        train_p, test_p = get_data.load_dataset(train_s, test_s)
+    else:
         (train_p, train_s), (test_p, test_s) = get_data.get_train_test_split(
             root_data_path, test_frac=0.4)
 
-        json.dump(train_s, open(od + "/train_speakers.txt", "w"))
-        json.dump(test_s, open(od + "/test_speakers.txt", "w"))
-    else: 
-        train_s = json.load(open(path_to_best_mode + "/train_speakers.txt"))
-        test_s = json.load(open(path_to_best_mode + "/test_speakers.txt"))
-        train_p, test_p  =  get_data.load_dataset(train_s, test_s)
+    json.dump(train_s, open(od + "/train_speakers.txt", "w"))
+    json.dump(test_s, open(od + "/test_speakers.txt", "w"))
 
-    '''
     train_dataset = torch.utils.data.DataLoader(
         train_p, batch_size=batch_size, num_workers=num_workers, shuffle=True)
     test_dataset = torch.utils.data.DataLoader(
         test_p, batch_size=batch_size, num_workers=num_workers)
 
-'''
-    train_dataset, test_dataset = load_mne.get_dataloader_MNE(batch_size)
-    
+    #train_dataset, test_dataset = load_mne.get_dataloader_MNE(batch_size)
 
     print("Train:", len(train_dataset), "samples")
     print("Test:", len(test_dataset), "samples")
@@ -88,7 +84,8 @@ if __name__ == '__main__':
                 DP_model.eval()
 
             running_loss = 0
-            for B, spk in tqdm(dataset):
+            for B, spk, rec, sess, chk in tqdm(dataset):
+                #print("B", B.shape, " spk ", spk.shape)
                 B.to(dev)
 
                 loss = torch.stack(DP_model(B))
@@ -102,7 +99,6 @@ if __name__ == '__main__':
                 running_loss += loss.detach().item()
                 del loss
                 del B
-                
 
             running_loss /= len(dataset)
 
@@ -113,11 +109,8 @@ if __name__ == '__main__':
         if (epoch+1) % lr_step_rate == 0:
             lr_step.step()
 
-        torch.cuda.empty_cache()
-        
+        #torch.cuda.empty_cache()
 
         gc.collect()
-
-        
 
     torch.save(model.state_dict(), od + "/model_params_final")

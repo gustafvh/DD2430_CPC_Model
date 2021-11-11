@@ -116,10 +116,10 @@ def get_data():
 
     # Read epochs (train will be done only between 1 and 2s)
     # Testing will be done with a running classifier
-    epochs = Epochs(raw, events, tmin=0.0, tmax=10, baseline=(0, 0))
+    epochs = Epochs(raw, events, tmin=0.0, tmax=50, baseline=(0, 0))
     
     labels = epochs.events[:, 2] - 2
-    return epochs.get_data()[:, :, :256], labels
+    return epochs.get_data()[:, :, :], labels
 
 def get_dataloader_MNE(batch_size):
 
@@ -145,10 +145,10 @@ def get_dataloader_MNE(batch_size):
     # create loaders
     num_workers = 1
     loader_train = \
-        DataLoader(ds_train, batch_size=batch_size,
+        DataLoader(ds_train, batch_size=2040,
                 num_workers=num_workers, sampler=sampler_train)
     loader_valid = \
-        DataLoader(ds_valid, batch_size=batch_size,
+        DataLoader(ds_valid, batch_size=2040,
                 num_workers=num_workers, sampler=sampler_valid)
 
     print("loader train:", len(loader_train), " loader_valid: ", len(loader_valid))

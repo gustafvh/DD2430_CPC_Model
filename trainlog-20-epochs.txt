@@ -164,3 +164,6 @@ RNN:    test: 91.10000000000001%
         train: 99.2%
 FFW:    test: 39.300000000000004%
         train: 53.300000000000004%
+
+
+Best model for first 20 epochs: 1636017087665
